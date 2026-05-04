@@ -48,7 +48,7 @@ bot.on("message", async (msg) => {
         inline_keyboard: [
           [{ text: "🔗 Descarga aquí", url: link }],
           [
-            { text: "📥 Cómo descargar", url: "https://t.me/nrcmod/154" },
+            { text: "📥 Ver guía", url: "https://t.me/nrcmod/154" },
             { text: "💬 Comentar", url: "https://t.me/nrcmods" }
           ]
         ]
