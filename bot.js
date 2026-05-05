@@ -20,7 +20,7 @@ app.post(`/bot${token}`, (req, res) => {
 // iniciar flujo
 bot.onText(/\/post/, (msg) => {
   estado[msg.chat.id] = { step: 1 };
-  bot.sendMessage(msg.chat.id, "📌 Reenvía o copia el mensaje que quieres publicar (con cita si tiene):");
+  bot.sendMessage(msg.chat.id, "📌 Copia el mensaje que quieres publicar ");
 });
 
 // recibir mensaje original
@@ -78,7 +78,7 @@ bot.on("callback_query", async (query) => {
           inline_keyboard: [
             [{ text: "🔗 Descargar aquí", url: user.link }],
             [
-              { text: "📥 Ver guía", url: user.guia },
+              { text: "📘 Ayuda", url: user.guia },
               { text: "💬 Comentar", url: user.comentarios }
             ]
           ]
