@@ -11,7 +11,7 @@ const bot = new TelegramBot(token);
 
 let estado = {};
 
-// webhook endpoint
+// webhook
 app.post(`/bot${token}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
@@ -20,33 +20,28 @@ app.post(`/bot${token}`, (req, res) => {
 // iniciar flujo
 bot.onText(/\/post/, (msg) => {
   estado[msg.chat.id] = { step: 1 };
-  bot.sendMessage(msg.chat.id, "📷 Envía la imagen:");
+  bot.sendMessage(msg.chat.id, "📷 Envía la imagen con su texto (caption):");
 });
 
 bot.on("message", async (msg) => {
   const user = estado[msg.chat.id];
   if (!user) return;
 
-  // Paso 1: imagen
+  // Paso 1: imagen + texto
   if (user.step === 1 && msg.photo) {
     user.photo = msg.photo[msg.photo.length - 1].file_id;
+    user.caption = msg.caption || " "; // caption opcional
     user.step = 2;
-    return bot.sendMessage(msg.chat.id, "📝 Envía el texto:");
+
+    return bot.sendMessage(msg.chat.id, "🔗 Envía el link de descarga:");
   }
 
-  // Paso 2: texto
+  // Paso 2: link → preview
   if (user.step === 2 && msg.text) {
-    user.caption = msg.text;
-    user.step = 3;
-    return bot.sendMessage(msg.chat.id, "🔗 Envía el link:");
-  }
-
-  // Paso 3: link → PREVIEW
-  if (user.step === 3 && msg.text) {
     user.link = msg.text;
     user.guia = "https://t.me/nrcmod/154";
     user.comentarios = "https://t.me/nrcmods";
-    user.step = 4;
+    user.step = 3;
 
     await bot.sendPhoto(msg.chat.id, user.photo, {
       caption: user.caption,
@@ -69,7 +64,7 @@ bot.on("message", async (msg) => {
   }
 });
 
-// manejar botones
+// botones
 bot.on("callback_query", async (query) => {
   const chatId = query.message.chat.id;
   const user = estado[chatId];
@@ -81,7 +76,6 @@ bot.on("callback_query", async (query) => {
     });
   }
 
-  // PUBLICAR
   if (query.data === "publicar") {
     try {
       await bot.sendPhoto(canal, user.photo, {
@@ -100,7 +94,6 @@ bot.on("callback_query", async (query) => {
       await bot.answerCallbackQuery(query.id, { text: "Publicado ✅" });
       await bot.sendMessage(chatId, "✅ Publicado en el canal");
 
-      // borrar preview (opcional)
       await bot.deleteMessage(chatId, query.message.message_id);
 
     } catch (e) {
@@ -114,24 +107,21 @@ bot.on("callback_query", async (query) => {
     delete estado[chatId];
   }
 
-  // CANCELAR
   if (query.data === "cancelar") {
     delete estado[chatId];
 
     await bot.answerCallbackQuery(query.id, { text: "Cancelado ❌" });
     await bot.sendMessage(chatId, "❌ Post cancelado");
 
-    // borrar preview (opcional)
     await bot.deleteMessage(chatId, query.message.message_id);
   }
 });
 
-// levantar servidor
+// servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log("Servidor iniciado");
 
   const url = process.env.RENDER_EXTERNAL_URL;
-
   await bot.setWebHook(`${url}/bot${token}`);
 });
