@@ -49,7 +49,7 @@ bot.on("message", async (msg) => {
         inline_keyboard: [
           [{ text: "🔗 Descargar aquí", url: user.link }],
           [
-            { text: "📥 Ver guía", url: user.guia },
+            { text: "📘 Ayuda", url: user.guia },
             { text: "💬 Comentar", url: user.comentarios }
           ],
           [
