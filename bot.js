@@ -23,43 +23,40 @@ bot.onText(/\/post/, (msg) => {
   bot.sendMessage(msg.chat.id, "📷 Envía la imagen:");
 });
 
+// flujo principal
 bot.on("message", async (msg) => {
   const user = estado[msg.chat.id];
   if (!user) return;
 
-  // PASO 1: imagen
+  // Paso 1: imagen
   if (user.step === 1 && msg.photo) {
     user.photo = msg.photo[msg.photo.length - 1].file_id;
     user.step = 2;
-
-    return bot.sendMessage(msg.chat.id, "📝 Envía el texto (puedes usar 'Citar'):");
+    return bot.sendMessage(msg.chat.id, "📝 Envía el texto (puedes usar cita):");
   }
 
-  // PASO 2: texto con entities reales
+  // Paso 2: texto con entities (CLAVE)
   if (user.step === 2 && msg.text) {
     user.caption = msg.text;
-    user.entities = msg.entities || []; // 👈 AQUÍ FUNCIONA LA CITA
+    user.entities = msg.entities || []; // 👈 AQUÍ se guarda la cita
     user.step = 3;
-
-    return bot.sendMessage(msg.chat.id, "🔗 Envía el link de descarga:");
+    return bot.sendMessage(msg.chat.id, "🔗 Envía el link:");
   }
 
-  // PASO 3: link → preview
+  // Paso 3: link → preview
   if (user.step === 3 && msg.text) {
     user.link = msg.text;
-    user.guia = "https://t.me/nrcmod/154";
-    user.comentarios = "https://t.me/nrcmods";
     user.step = 4;
 
     await bot.sendPhoto(msg.chat.id, user.photo, {
       caption: user.caption,
-      caption_entities: user.entities, // 👈 preview con cita REAL
+      caption_entities: user.entities, // 👈 mantiene cita en preview
       reply_markup: {
         inline_keyboard: [
           [{ text: "🔗 Descarga aquí", url: user.link }],
           [
-            { text: "📥 Ver guía", url: user.guia },
-            { text: "💬 Comentar", url: user.comentarios }
+            { text: "📥 Ver guía", url: "https://t.me/nrcmod/154" },
+            { text: "💬 Comentar", url: "https://t.me/nrcmods" }
           ],
           [
             { text: "✅ Publicar", callback_data: "publicar" },
@@ -80,7 +77,7 @@ bot.on("callback_query", async (query) => {
 
   if (!user) {
     return bot.answerCallbackQuery(query.id, {
-      text: "❌ No hay datos",
+      text: "❌ Sin datos",
       show_alert: true
     });
   }
@@ -89,13 +86,13 @@ bot.on("callback_query", async (query) => {
     try {
       await bot.sendPhoto(canal, user.photo, {
         caption: user.caption,
-        caption_entities: user.entities, // 👈 cita funciona en canal + grupo
+        caption_entities: user.entities, // 👈 CLAVE para mantener cita
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔗 Descarga aquí", url: user.link }],
             [
-              { text: "📥 Ver guía", url: user.guia },
-              { text: "💬 Comentar", url: user.comentarios }
+              { text: "📥 Ver guía", url: "https://t.me/nrcmod/154" },
+              { text: "💬 Comentar", url: "https://t.me/nrcmods" }
             ]
           ]
         }
@@ -106,8 +103,8 @@ bot.on("callback_query", async (query) => {
 
       await bot.deleteMessage(chatId, query.message.message_id);
 
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      console.log(err);
       await bot.answerCallbackQuery(query.id, {
         text: "Error ❌",
         show_alert: true
