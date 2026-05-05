@@ -33,7 +33,7 @@ bot.on("message", async (msg) => {
     user.original_chat = msg.chat.id;
     user.original_message_id = msg.message_id;
     user.step = 2;
-    return bot.sendMessage(msg.chat.id, "🔗 Envía el link principal para el botón 'Descargar aquí':");
+    return bot.sendMessage(msg.chat.id, "Envía el link principal para el botón 🔗 Descargar aquí");
   }
 
   // Paso 2: recibir link para botón principal
