@@ -27,10 +27,11 @@ bot.on("message", async (msg) => {
   const user = estado[msg.chat.id];
   if (!user) return;
 
-  // Paso 1: imagen + texto
+  // Paso 1: imagen + texto (capturando entities)
   if (user.step === 1 && msg.photo) {
     user.photo = msg.photo[msg.photo.length - 1].file_id;
-    user.caption = msg.caption || " "; // caption opcional
+    user.caption = msg.caption || " ";
+    user.entities = msg.caption_entities || []; // 👈 IMPORTANTE
     user.step = 2;
 
     return bot.sendMessage(msg.chat.id, "🔗 Envía el link de descarga:");
@@ -45,6 +46,7 @@ bot.on("message", async (msg) => {
 
     await bot.sendPhoto(msg.chat.id, user.photo, {
       caption: user.caption,
+      caption_entities: user.entities, // 👈 mantiene cita en preview
       reply_markup: {
         inline_keyboard: [
           [{ text: "🔗 Descarga aquí", url: user.link }],
@@ -80,6 +82,7 @@ bot.on("callback_query", async (query) => {
     try {
       await bot.sendPhoto(canal, user.photo, {
         caption: user.caption,
+        caption_entities: user.entities, // 👈 mantiene cita en canal/grupo
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔗 Descarga aquí", url: user.link }],
