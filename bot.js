@@ -20,33 +20,40 @@ app.post(`/bot${token}`, (req, res) => {
 // iniciar flujo
 bot.onText(/\/post/, (msg) => {
   estado[msg.chat.id] = { step: 1 };
-  bot.sendMessage(msg.chat.id, "📷 Envía la imagen con su texto (caption):");
+  bot.sendMessage(msg.chat.id, "📷 Envía la imagen:");
 });
 
 bot.on("message", async (msg) => {
   const user = estado[msg.chat.id];
   if (!user) return;
 
-  // Paso 1: imagen + texto (capturando entities)
+  // PASO 1: imagen
   if (user.step === 1 && msg.photo) {
     user.photo = msg.photo[msg.photo.length - 1].file_id;
-    user.caption = msg.caption || " ";
-    user.entities = msg.caption_entities || []; // 👈 IMPORTANTE
     user.step = 2;
+
+    return bot.sendMessage(msg.chat.id, "📝 Envía el texto (puedes usar 'Citar'):");
+  }
+
+  // PASO 2: texto con entities reales
+  if (user.step === 2 && msg.text) {
+    user.caption = msg.text;
+    user.entities = msg.entities || []; // 👈 AQUÍ FUNCIONA LA CITA
+    user.step = 3;
 
     return bot.sendMessage(msg.chat.id, "🔗 Envía el link de descarga:");
   }
 
-  // Paso 2: link → preview
-  if (user.step === 2 && msg.text) {
+  // PASO 3: link → preview
+  if (user.step === 3 && msg.text) {
     user.link = msg.text;
     user.guia = "https://t.me/nrcmod/154";
     user.comentarios = "https://t.me/nrcmods";
-    user.step = 3;
+    user.step = 4;
 
     await bot.sendPhoto(msg.chat.id, user.photo, {
       caption: user.caption,
-      caption_entities: user.entities, // 👈 mantiene cita en preview
+      caption_entities: user.entities, // 👈 preview con cita REAL
       reply_markup: {
         inline_keyboard: [
           [{ text: "🔗 Descarga aquí", url: user.link }],
@@ -82,7 +89,7 @@ bot.on("callback_query", async (query) => {
     try {
       await bot.sendPhoto(canal, user.photo, {
         caption: user.caption,
-        caption_entities: user.entities, // 👈 mantiene cita en canal/grupo
+        caption_entities: user.entities, // 👈 cita funciona en canal + grupo
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔗 Descarga aquí", url: user.link }],
