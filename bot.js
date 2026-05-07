@@ -43,6 +43,30 @@ bot.onText(/\/post/, (msg) => {
   );
 });
 
+// cancelar flujo manualmente
+bot.onText(/\/cancelar/, async (msg) => {
+
+  if (!autorizado(msg.from.id)) {
+    return bot.sendMessage(msg.chat.id, "❌ No autorizado");
+  }
+
+  const user = estado[msg.chat.id];
+
+  if (!user) {
+    return bot.sendMessage(
+      msg.chat.id,
+      "⚠️ No hay ninguna publicación pendiente"
+    );
+  }
+
+  delete estado[msg.chat.id];
+
+  return bot.sendMessage(
+    msg.chat.id,
+    "❌ Publicación cancelada"
+  );
+});
+
 // recibir mensajes
 bot.on("message", async (msg) => {
 
@@ -51,6 +75,9 @@ bot.on("message", async (msg) => {
 
   const user = estado[msg.chat.id];
   if (!user) return;
+
+  // evitar capturar comandos
+  if (msg.text && msg.text.startsWith("/")) return;
 
   // Paso 1: guardar mensaje original
   if (
@@ -190,6 +217,12 @@ bot.on("callback_query", async (query) => {
       await bot.deleteMessage(
         chatId,
         query.message.message_id
+      );
+
+      // borrar publicación enviada al bot
+      await bot.deleteMessage(
+        user.original_chat,
+        user.original_message_id
       );
 
     } catch (err) {
